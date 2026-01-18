@@ -1,24 +1,27 @@
-import { db, auth } from "./firebase.js";
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-// Protect dashboard
+const messagesContainer = document.getElementById("messages");
+
+// Protect dashboard: redirect to login if not logged in
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         window.location.href = "login.html";
     }
 });
 
-const list = document.getElementById("messages");
-
-onValue(ref(db, "messages"), (snapshot) => {
-    list.innerHTML = "";
-    snapshot.forEach(child => {
-        const d = child.val();
-        list.innerHTML += `
-      <div class="msg">
-        <h4>${d.name} (${d.email})</h4>
-        <p>${d.message}</p>
+// Load messages from Firebase
+const messagesRef = ref(db, "messages");
+onValue(messagesRef, (snapshot) => {
+    messagesContainer.innerHTML = "";
+    snapshot.forEach((childSnapshot) => {
+        const msg = childSnapshot.val();
+        messagesContainer.innerHTML += `
+      <div style="border-bottom:1px solid #ccc; padding:5px; margin-bottom:5px;">
+        <b>${msg.name}</b> (${msg.email})<br>
+        ${msg.message}<br>
+        <small>${new Date(msg.timestamp).toLocaleString()}</small>
       </div>
     `;
     });
